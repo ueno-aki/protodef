@@ -3,13 +3,12 @@ use byteorder::{BigEndian, LittleEndian, ByteOrder};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-enum ReadError {
+pub enum ReadError {
     #[error("Invalid index ,expected at most {0}")]
     OutOfBounds(usize),
     #[error("Missing characters in string, found size is {0}, expected size was {1}")]
     MissingCharacters(usize, u64),
 }
-
 pub trait Read {
     fn read_i32(&self, offset: u64) -> i32;
     fn read_li32(&self, offset: u64) -> i32;
