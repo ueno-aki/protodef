@@ -12,7 +12,7 @@ enum ReadError {
 pub trait Read {
     fn read_varint(&self, offset: u64)->Result<(u64,u64)>;
 }
-impl Read for &[u8] {
+impl Read for Vec<u8> {
     fn read_varint(&self, offset: u64)->Result<(u64,u64)> {
         let mut value: u64 = 0;
         let mut shift: u8 = 0;
