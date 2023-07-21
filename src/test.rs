@@ -1,11 +1,6 @@
 use anyhow::Result;
 use crate::prelude::*;
 #[test]
-pub fn hello() -> Result<()>{
-    println!("helloworld");
-    Ok(())
-}
-#[test]
 pub fn io_varint() {
     let number:u64 = 12345679;
     let mut vec:Vec<u8> = Vec::new();
