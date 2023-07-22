@@ -5,6 +5,7 @@ pub trait Write {
     fn write_u8(&mut self, value: u8) -> Result<()>;
     fn write_i8(&mut self, value: i8) -> Result<()>;
     fn write_u16(&mut self, value: u16) -> Result<()>;
+    fn write_i32(&mut self, value: i32) -> Result<()>;
     fn write_lf32(&mut self, value: f32) -> Result<()>;
     fn write_var_int(&mut self, value: u64) -> Result<u64>;
     fn write_bool(&mut self, value: bool) -> Result<()>;
@@ -21,6 +22,10 @@ impl Write for Vec<u8> {
     }
     fn write_u16(&mut self, value: u16) -> Result<()> {
         byteorder::WriteBytesExt::write_u16::<BigEndian>(self, value)?;
+        Ok(())
+    }
+    fn write_i32(&mut self, value: i32) -> Result<()> {
+        byteorder::WriteBytesExt::write_i32::<BigEndian>(self, value)?;
         Ok(())
     }
     fn write_lf32(&mut self, value: f32) -> Result<()> {
