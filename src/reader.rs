@@ -1,4 +1,4 @@
-use anyhow::{Ok, Result};
+use anyhow::{Ok, Result, anyhow};
 use byteorder::{BigEndian, LittleEndian, ByteOrder};
 use thiserror::Error;
 
@@ -8,11 +8,14 @@ pub enum ReadError {
     OutOfBounds(usize),
     #[error("Missing characters in string, found size is {0}, expected size was {1}")]
     MissingCharacters(usize, u64),
+    #[error("Failed to parse {0} into bool")]
+    FailedIntoBoolean(u8)
 }
 pub trait Read {
     fn read_i32(&self, offset: u64) -> i32;
     fn read_li32(&self, offset: u64) -> i32;
     fn read_varint(&self, offset: u64) -> Result<(u64, u64)>;
+    fn read_bool(&self, offset: u64) -> Result<(bool,u64)>;
     fn read_little_string(&self, offset: u64) -> Result<(String, u64)>;
 }
 impl Read for Vec<u8> {
@@ -37,6 +40,13 @@ impl Read for Vec<u8> {
                 break Ok((value, cursor - offset));
             }
             shift += 7;
+        }
+    }
+    fn read_bool(&self, offset: u64) -> Result<(bool,u64)> {
+        match self[offset as usize] {
+            n if n == 0 => Ok((false,1)),
+            n if n == 1 => Ok((true,1)),
+            _ => Err(ReadError::FailedIntoBoolean(self[offset as usize]).into())
         }
     }
     fn read_little_string(&self, offset: u64) -> Result<(String, u64)> {
