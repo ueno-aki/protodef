@@ -4,6 +4,8 @@ use byteorder::{BigEndian, LittleEndian,WriteBytesExt};
 pub trait Write {
     fn write_u8(&mut self, value: u8) -> Result<()>;
     fn write_i8(&mut self, value: i8) -> Result<()>;
+    fn write_i16(&mut self, value: i16) -> Result<()>;
+    fn write_li16(&mut self, value: i16) -> Result<()>;
     fn write_u16(&mut self, value: u16) -> Result<()>;
     fn write_lu16(&mut self, value: u16) -> Result<()>;
     fn write_u32(&mut self, value: u32) -> Result<()>;
@@ -25,6 +27,16 @@ impl Write for Vec<u8> {
     #[inline]
     fn write_i8(&mut self, value: i8) -> Result<()> {
         WriteBytesExt::write_i8(self, value)?;
+        Ok(())
+    }
+    #[inline]
+    fn write_i16(&mut self, value: i16) -> Result<()> {
+        WriteBytesExt::write_i16::<BigEndian>(self, value)?;
+        Ok(())
+    }
+    #[inline]
+    fn write_li16(&mut self, value: i16) -> Result<()> {
+        WriteBytesExt::write_i16::<LittleEndian>(self, value)?;
         Ok(())
     }
     #[inline]
