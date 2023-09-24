@@ -1,4 +1,3 @@
-use anyhow::Result;
 use crate::prelude::*;
 #[test]
 pub fn io_varint() {
