@@ -79,7 +79,7 @@ impl ProtodefReader for Vec<u8> {
     #[inline]
     fn read_little_string(&self, offset: usize) -> Result<(String, usize)> {
         let mut cursor = offset;
-        let str_size = self.read_li32(offset) as usize;
+        let str_size = self.read_li32(cursor) as usize;
         cursor += 4;
         let edge = cursor + str_size;
         if edge > self.len() {
@@ -87,6 +87,6 @@ impl ProtodefReader for Vec<u8> {
         }
         let str = String::from_utf8(self[cursor..edge].to_vec())?;
         cursor += str_size;
-        Ok((str, cursor))
+        Ok((str, cursor - offset))
     }
 }
