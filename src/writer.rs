@@ -2,11 +2,10 @@ use anyhow::{Result, anyhow};
 
 macro_rules! native_writer {
     ($($native:ty),*) => {
-        use paste::paste;
         use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
         pub trait NativeWriter {
             $(
-                paste! {
+                paste::paste! {
                     fn [<write_ $native>](&mut self, value: $native) -> Result<()>;
                     fn [<write_l $native>](&mut self, value: $native) -> Result<()>;
                 }
@@ -16,7 +15,7 @@ macro_rules! native_writer {
         }
         impl NativeWriter for Vec<u8> {
             $(
-                paste! {
+                paste::paste! {
                     #[inline]
                     fn [<write_ $native>](&mut self, value: $native) -> Result<()> {
                         WriteBytesExt::[<write_ $native>]::<BigEndian>(self, value).map_err(|e|anyhow!(e))

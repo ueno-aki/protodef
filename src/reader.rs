@@ -12,11 +12,10 @@ pub enum ReadError {
 }
 macro_rules! native_reader {
     ($($native:ty),*) => {
-        use paste::paste;
         use byteorder::{BigEndian, LittleEndian, ByteOrder};
         pub trait NativeReader {
             $(
-                paste! {
+                paste::paste! {
                     fn [<read_ $native>](&self, offset: usize) -> $native;
                     fn [<read_l $native>](&self, offset: usize) -> $native;
                 }
@@ -25,7 +24,7 @@ macro_rules! native_reader {
         }
         impl NativeReader for Vec<u8> {
             $(
-                paste! {
+                paste::paste! {
                     #[inline]
                     fn [<read_ $native>](&self, offset: usize) -> $native {
                         BigEndian::[<read_$native>](&self[offset..])
