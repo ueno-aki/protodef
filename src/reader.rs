@@ -47,6 +47,7 @@ native_reader![u16,u32,u64,i16,i32,i64,f32,f64];
 pub trait ProtodefReader {
     fn read_varint(&self, offset: usize) -> Result<(u64, usize)>;
     fn read_bool(&self, offset: usize) -> Result<(bool,usize)>;
+    fn read_string(&self, offset: usize) -> Result<(String, usize)>;
     fn read_little_string(&self, offset: usize) -> Result<(String, usize)>;
 }
 impl ProtodefReader for Vec<u8> {
@@ -77,6 +78,18 @@ impl ProtodefReader for Vec<u8> {
         }
     }
     #[inline]
+    fn read_string(&self, offset: usize) -> Result<(String, usize)> {
+        let mut cursor = offset;
+        let (str_size,size) = self.read_varint(cursor)?;
+        cursor += size;
+        let edge = cursor + str_size as usize;
+        if edge > self.len() {
+            return Err(ReadError::MissingCharacters(self.len(), edge).into());
+        }
+        let str = String::from_utf8(self[cursor..edge].to_vec())?;
+        Ok((str, cursor - offset))
+    }
+    #[inline]
     fn read_little_string(&self, offset: usize) -> Result<(String, usize)> {
         let mut cursor = offset;
         let str_size = self.read_li32(cursor) as usize;
@@ -86,7 +99,6 @@ impl ProtodefReader for Vec<u8> {
             return Err(ReadError::MissingCharacters(self.len(), edge).into());
         }
         let str = String::from_utf8(self[cursor..edge].to_vec())?;
-        cursor += str_size;
-        Ok((str, cursor - offset))
+        Ok((str, 4 + str_size))
     }
 }
