@@ -75,15 +75,15 @@ impl ProtodefReader for Vec<u8> {
     }
     fn read_zigzag32(&self, offset: usize) -> Result<(i32, usize)> {
         let (value, size) = self.read_varint(offset)?;
-        let h = -1 * (value & 1) as i32;
-        let v = (value >> 1) ^ (h as u32) as u64;
-        Ok((v as i32, size))
+        let sign = (-1 * (value & 1) as i32) as u32 as u64;
+        let value = (value >> 1) ^ sign;
+        Ok((value as i32, size))
     }
     fn read_zigzag64(&self, offset: usize) -> Result<(i64, usize)> {
         let (value, size) = self.read_varint(offset)?;
-        let h = -1 * ((value & 1) as i64);
-        let v = (value >> 1) ^ h as u64;
-        Ok((v as i64, size))
+        let sign = (-1 * (value & 1) as i64) as u64;
+        let value = (value >> 1) ^ sign;
+        Ok((value as i64, size))
     }
     fn read_bool(&self, offset: usize) -> Result<(bool, usize)> {
         match self[offset] {

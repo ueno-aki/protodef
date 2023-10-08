@@ -70,7 +70,7 @@ impl ProtodefWriter for Vec<u8> {
     /// 32bit Signed VarInt
     fn write_zigzag32(&mut self, value: i32) -> Result<usize> {
         let v = (value >> 31) ^ (value << 1);
-        Ok(self.write_varint((v as u32) as u64)?)
+        Ok(self.write_varint(v as u32 as u64)?)
     }
     #[inline]
     /// 64bit Signed VarInt
