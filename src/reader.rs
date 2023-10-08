@@ -5,10 +5,12 @@ use thiserror::Error;
 pub enum ReadError {
     #[error("Invalid index ,expected at most {0}")]
     OutOfBounds(usize),
-    #[error("Missing characters in string, found size is {0}, expected size was {1}")]
+    #[error("varint is too big:{0} > 63")]
+    VarIntTooBig(u8),
+    #[error("Missing characters in string, at most {0}, found size {1}")]
     MissingCharacters(usize, usize),
     #[error("Failed to parse {0} into bool")]
-    FailedIntoBoolean(u8)
+    FailedIntoBoolean(u8),
 }
 macro_rules! native_reader {
     ($($native:ty),*) => {
@@ -42,45 +44,57 @@ macro_rules! native_reader {
         }
     };
 }
-native_reader![u16,u32,u64,i16,i32,i64,f32,f64];
+native_reader![u16, u32, u64, i16, i32, i64, f32, f64];
 
 pub trait ProtodefReader {
     fn read_varint(&self, offset: usize) -> Result<(u64, usize)>;
-    fn read_bool(&self, offset: usize) -> Result<(bool,usize)>;
     fn read_string(&self, offset: usize) -> Result<(String, usize)>;
     fn read_little_string(&self, offset: usize) -> Result<(String, usize)>;
+    fn read_zigzag32(&self, offset: usize) -> Result<(i32, usize)>;
+    fn read_zigzag64(&self, offset: usize) -> Result<(i64, usize)>;
+    fn read_bool(&self, offset: usize) -> Result<(bool, usize)>;
 }
 impl ProtodefReader for Vec<u8> {
-    #[inline]
-    fn read_varint(&self, offset: usize)->Result<(u64,usize)> {
+    fn read_varint(&self, offset: usize) -> Result<(u64, usize)> {
         let mut value: u64 = 0;
-        let mut shift: u64 = 0;
+        let mut shift: u8 = 0;
         let mut cursor = offset;
         loop {
-            if (cursor + 1) > self.len(){
-                break Err(ReadError::OutOfBounds(self.len()).into());
-            }
             let byte = self[cursor] as u64;
             value |= (byte & 0x7f) << shift;
             cursor += 1;
+            shift += 7;
             if (byte & 0x80) == 0 {
                 break Ok((value, cursor - offset));
+            } else if shift > 63 {
+                break Err(ReadError::VarIntTooBig(shift).into());
+            } else if (cursor + 1) > self.len() {
+                break Err(ReadError::OutOfBounds(self.len()).into());
             }
-            shift += 7;
         }
     }
-    #[inline]
-    fn read_bool(&self, offset: usize) -> Result<(bool,usize)> {
+    fn read_zigzag32(&self, offset: usize) -> Result<(i32, usize)> {
+        let (value,size) = self.read_varint(offset)?;
+        let h = -1 * (value & 1) as i32;
+        let v = (value >> 1) ^ (h as u32) as u64;
+        Ok((v as i32,size))
+    }
+    fn read_zigzag64(&self, offset: usize) -> Result<(i64, usize)> {
+        let (value,size) = self.read_varint(offset)?;
+        let h = -1 * ((value & 1) as i64);
+        let v = (value >> 1) ^ h as u64;
+        Ok((v as i64,size))
+    }
+    fn read_bool(&self, offset: usize) -> Result<(bool, usize)> {
         match self[offset] {
-            n if n == 0 => Ok((false,1)),
-            n if n == 1 => Ok((true,1)),
-            _ => Err(ReadError::FailedIntoBoolean(self[offset]).into())
+            n if n == 0 => Ok((false, 1)),
+            n if n == 1 => Ok((true, 1)),
+            _ => Err(ReadError::FailedIntoBoolean(self[offset]).into()),
         }
     }
-    #[inline]
     fn read_string(&self, offset: usize) -> Result<(String, usize)> {
         let mut cursor = offset;
-        let (str_size,size) = self.read_varint(cursor)?;
+        let (str_size, size) = self.read_varint(cursor)?;
         cursor += size;
         let edge = cursor + str_size as usize;
         if edge > self.len() {
@@ -89,7 +103,6 @@ impl ProtodefReader for Vec<u8> {
         let str = String::from_utf8(self[cursor..edge].to_vec())?;
         Ok((str, cursor - offset))
     }
-    #[inline]
     fn read_little_string(&self, offset: usize) -> Result<(String, usize)> {
         let mut cursor = offset;
         let str_size = self.read_li32(cursor) as usize;
