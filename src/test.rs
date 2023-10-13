@@ -32,3 +32,19 @@ pub fn zigzag64() {
     let (value, _size) = vec.read_zigzag64(0).unwrap();
     assert_eq!(i, value);
 }
+
+#[test]
+pub fn ref_buf() {
+    let i = i32::MIN;
+    let mut v:Vec<u8> = vec![];
+    write_buf(&mut v, i);
+    let value = read_buf(&mut v);
+    assert_eq!(i, value);
+}
+fn write_buf(vec:&mut Vec<u8>,i_32:i32) {
+    vec.write_zigzag32(i_32).unwrap();
+}
+fn read_buf(vec:&mut [u8]) -> i32{
+    vec.as_ref().read_zigzag32(0).unwrap().0
+}
+
