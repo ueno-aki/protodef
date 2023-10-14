@@ -15,28 +15,6 @@ macro_rules! native_writer {
             fn write_u8(&mut self, value: u8) -> Result<()>;
             fn write_i8(&mut self, value: i8) -> Result<()>;
         }
-        impl NativeWriter for &mut [u8] {
-            $(
-                paste::paste! {
-                    #[inline]
-                    fn [<write_ $native>](&mut self, value: $native) -> Result<()> {
-                        WriteBytesExt::[<write_ $native>]::<BigEndian>(self, value).map_err(|e|anyhow!(e))
-                    }
-                    #[inline]
-                    fn [<write_l $native>](&mut self, value: $native) -> Result<()> {
-                        WriteBytesExt::[<write_ $native>]::<LittleEndian>(self, value).map_err(|e|anyhow!(e))
-                    }
-                }
-            )*
-            #[inline]
-            fn write_u8(&mut self, value: u8) -> Result<()> {
-                WriteBytesExt::write_u8(self, value).map_err(|e|anyhow!(e))
-            }
-            #[inline]
-            fn write_i8(&mut self, value: i8) -> Result<()> {
-                WriteBytesExt::write_i8(self, value).map_err(|e|anyhow!(e))
-            }
-        }
         impl NativeWriter for Vec<u8> {
             $(
                 paste::paste! {
