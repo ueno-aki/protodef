@@ -133,7 +133,7 @@ macro_rules! impl_protodef_reader {
                         return Err(ReadError::MissingCharacters(self.len(), edge).into());
                     }
                     let str = String::from_utf8(self[cursor..edge].to_vec())?;
-                    Ok((str, cursor - offset))
+                    Ok((str, edge - offset))
                 }
                 fn read_little_string(&self, offset: usize) -> Result<(String, usize)> {
                     let mut cursor = offset;
