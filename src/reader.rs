@@ -24,6 +24,7 @@ macro_rules! native_reader {
                 }
             )*
             fn read_u8(&self, offset: usize) -> u8;
+            fn read_i8(&self, offset: usize) -> i8;
         }
         impl NativeReader for &[u8] {
             $(
@@ -42,6 +43,10 @@ macro_rules! native_reader {
             fn read_u8(&self, offset: usize) -> u8 {
                 self[offset]
             }
+            #[inline]
+            fn read_i8(&self, offset: usize) -> i8 {
+                self[offset] as i8
+            }
         }
         impl NativeReader for Vec<u8> {
             $(
@@ -59,6 +64,10 @@ macro_rules! native_reader {
             #[inline]
             fn read_u8(&self, offset: usize) -> u8 {
                 self[offset]
+            }
+            #[inline]
+            fn read_i8(&self, offset: usize) -> i8 {
+                self[offset] as i8
             }
         }
     };
