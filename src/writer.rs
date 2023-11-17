@@ -44,6 +44,7 @@ native_writer![u16, u32, u64, i16, i32, i64, f32, f64];
 pub trait ProtodefWriter {
     fn write_varint(& mut self, value: u64) -> Result<usize>;
     fn write_string(& mut self, value: &str) -> Result<usize>;
+    fn write_short_string(&mut self, value: &str) -> Result<usize>;
     fn write_zigzag32(& mut self, value: i32) -> Result<usize>;
     fn write_zigzag64(& mut self, value: i64) -> Result<usize>;
     fn write_bool(& mut self, value: bool) -> Result<()>;
@@ -68,6 +69,12 @@ impl ProtodefWriter for Vec<u8> {
         cursor += self.write_varint(len as u64)?;
         self.write(&value.as_bytes().to_vec())?;
         Ok(cursor + len)
+    }
+    fn write_short_string(&mut self, value: &str) -> Result<usize> {
+        let len = value.as_bytes().len();
+        self.write_lu16(len as u16)?;
+        self.write(&value.as_bytes().to_vec())?;
+        Ok(len + 2)
     }
     #[inline]
     /// 32bit Signed VarInt
