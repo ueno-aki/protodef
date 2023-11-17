@@ -138,7 +138,7 @@ macro_rules! impl_protodef_reader {
                 }
                 fn read_short_string(&self, offset: usize) -> Result<(String, usize)> {
                     let mut cursor = offset;
-                    let str_size = self.read_lu16(cursor);
+                    let str_size = self.read_li16(cursor);
                     cursor += 2;
                     let edge = cursor + str_size as usize;
                     if edge > self.len() {

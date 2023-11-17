@@ -72,7 +72,7 @@ impl ProtodefWriter for Vec<u8> {
     }
     fn write_short_string(&mut self, value: &str) -> Result<usize> {
         let len = value.as_bytes().len();
-        self.write_lu16(len as u16)?;
+        self.write_li16(len as i16)?;
         self.write(&value.as_bytes().to_vec())?;
         Ok(len + 2)
     }
